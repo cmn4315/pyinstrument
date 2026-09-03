@@ -19,6 +19,8 @@ documentation. Those metrics are listed in the following section.
 - Maintainability; How easily can the project be updated/maintained by open-source contributors?
     - Code Structure; How well-structured is the source code for the project?
         - Measured by Lines of Code (LOC) per module/file, comment density, and possibly cyclomatic/cognitive complexity.
+            - LoC per file: 85
+            - Comment density: 0.062 (6.2% of lines are comments)
     - Testability; How easily can the project be tested, and how thoroughly is the project currently tested?
         - Measured by number of unit test cases per test suite and by test coverage (line coverage, branch coverage,
         etc.)
