@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import json
+import os
 import sys
 import time
 from unittest.mock import patch
 
 import pytest
 
-from pyinstrument import renderers
+from pyinstrument import profiler, renderers, session
 from pyinstrument.profiler import Profiler
+from pyinstrument.renderers.base import Renderer
+from pyinstrument.renderers.console import ConsoleRenderer
+from pyinstrument.renderers.html import HTMLRenderer
+from pyinstrument.renderers.session import SessionRenderer
 from pyinstrument.session import Session
 
 from .fake_time_util import fake_time
@@ -124,3 +130,54 @@ def test_html_renderer_resampling(capsys):
     captured = capsys.readouterr()
     assert "Resampled to" in captured.err
     assert mock_resample.called
+
+
+# Caleb Naeger - Added for SWEN 777
+def test_session_renderer_renders_json(profiler_session):
+    session_renderer = SessionRenderer()
+    rendered = session_renderer.render(profiler_session)
+    rendered = json.loads(rendered)
+    assert rendered is not None
+    assert "sample_count" in rendered
+    assert rendered["sample_count"] == 2
+    assert "start_call_stack" in rendered
+
+
+def test_console_renderer_flat_xor_timeline():
+    with pytest.raises(Renderer.MisconfigurationError, match="timeline and flat options together"):
+        renderer = ConsoleRenderer(timeline=True, flat=True)
+
+
+def test_console_renderer_percent_of_total_time(profiler_session):
+    renderer = ConsoleRenderer(time="percent_of_total")
+    result = renderer.render(profiler_session)
+    # check that result shows the top level stack frame with 100% of the total time, and that there's a frame with 50%
+    # of the time
+    assert "100.0%" in result
+    assert "50.0%" in result
+
+
+def test_html_renderer_options_deprecated():
+    with pytest.warns(DeprecationWarning, match="the show_all option is deprecated"):
+        renderer = HTMLRenderer(show_all=True)
+    with pytest.warns(DeprecationWarning, match="timeline is deprecated"):
+        renderer = HTMLRenderer(timeline=True)
+
+
+def test_html_renderer_open_in_browser(profiler_session):
+    with patch("webbrowser.open") as mock_open:
+        renderer = HTMLRenderer()
+        renderer.open_in_browser(profiler_session, "tmp.html")
+
+        # Assert webbrowser.open called with the correct URL
+        mock_open.assert_called_once_with("file:tmp.html")
+        # cleanup tmp.html
+        os.remove("tmp.html")
+
+        # reset the mock, so we can do the other branch
+        mock_open.reset_mock()
+
+        # cover the other branch -- no output file specified
+        file = renderer.open_in_browser(profiler_session)
+        mock_open.assert_called_once_with(f"file://{file}")
+        os.remove(file)
