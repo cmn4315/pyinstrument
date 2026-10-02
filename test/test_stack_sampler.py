@@ -1,6 +1,7 @@
 import contextvars
 import sys
 import time
+from unittest.mock import patch
 
 import pytest
 
@@ -172,3 +173,65 @@ def test_failed_subscription_rolls_back_state():
         assert sampler.current_sampling_interval == 0.001
     finally:
         sampler.unsubscribe(counter_1.sample)
+
+
+@tidy_up_profiler_state_on_fail
+def test_uses_coarse_timer_when_resolution_is_sufficient():
+    with patch("pyinstrument.stack_sampler.setstatprofile") as mock_setstatprofile:
+        with patch("pyinstrument.stack_sampler.walltime_coarse_resolution") as mock_resolution:
+            mock_resolution.return_value = 0.001
+
+            sampler = stack_sampler.get_stack_sampler()
+            sampler._start_sampling(interval=0.01, use_timing_thread=False)
+
+            assert mock_setstatprofile.call_args.kwargs["timer_type"] == "walltime_coarse"
+
+
+@tidy_up_profiler_state_on_fail
+def test_uses_walltimer_when_resolution_above_interval():
+    with patch("pyinstrument.stack_sampler.setstatprofile") as mock_setstatprofile:
+        with patch("pyinstrument.stack_sampler.walltime_coarse_resolution") as mock_resolution:
+            mock_resolution.return_value = 0.1
+
+            sampler = stack_sampler.get_stack_sampler()
+            sampler._start_sampling(interval=0.01, use_timing_thread=False)
+
+            assert mock_setstatprofile.call_args.kwargs["timer_type"] == "walltime"
+
+
+@tidy_up_profiler_state_on_fail
+def test_timer_func_used_when_use_timing_thread_false():
+    sampler = stack_sampler.get_stack_sampler()
+    sampler.timer_func = lambda: 123.0
+
+    with patch("pyinstrument.stack_sampler.setstatprofile") as mock:
+        sampler._start_sampling(0.01, use_timing_thread=False)
+
+    assert mock.call_args.kwargs["timer_type"] == "timer_func"
+
+
+@tidy_up_profiler_state_on_fail
+def test_timer_thread_used_correctly():
+    sampler = stack_sampler.get_stack_sampler()
+
+    with patch("pyinstrument.stack_sampler.setstatprofile") as mock:
+        sampler._start_sampling(0.01, use_timing_thread=True)
+
+    assert mock.call_args.kwargs["timer_type"] == "walltime_thread"
+
+
+@tidy_up_profiler_state_on_fail
+def test_rollback_on_C_hooks_failure_during_subscribe():
+    with patch("pyinstrument.stack_sampler.setstatprofile") as mock_setstatprofile:
+        mock_setstatprofile.side_effect = RuntimeError("C profiler failed")
+
+        sampler = stack_sampler.get_stack_sampler()
+
+        with pytest.raises(RuntimeError, match="C profiler failed"):
+            sampler.subscribe(
+                lambda *args: None,
+                desired_interval=0.001,
+                use_async_context=False,
+            )
+
+        assert sampler.subscribers == []
