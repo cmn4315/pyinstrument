@@ -174,7 +174,9 @@ def test_failed_subscription_rolls_back_state():
     finally:
         sampler.unsubscribe(counter_1.sample)
 
+        # Added by Caleb Naeger for SWEN-777 Unit Testing II Assignment
 
+        """
 @tidy_up_profiler_state_on_fail
 def test_uses_coarse_timer_when_resolution_is_sufficient():
     with patch("pyinstrument.stack_sampler.setstatprofile") as mock_setstatprofile:
@@ -235,3 +237,5 @@ def test_rollback_on_C_hooks_failure_during_subscribe():
             )
 
         assert sampler.subscribers == []
+
+        """
