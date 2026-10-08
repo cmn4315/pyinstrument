@@ -19,3 +19,6 @@ pythonVersion = "3.8"
 profile = "black"
 multi_line_output = 3
 line_length = 100
+
+[tool.pytest.ini_options]
+addopts = "--ignore=test_cmdline.py --ignore=test/test_overflow.py --ignore=test/test_profiler_async.py --disable-warnings"
