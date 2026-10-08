@@ -21,4 +21,9 @@ multi_line_output = 3
 line_length = 100
 
 [tool.pytest.ini_options]
-addopts = "--ignore=test_cmdline.py --ignore=test/test_overflow.py --ignore=test/test_profiler_async.py --disable-warnings"
+addopts = "--ignore=test_cmdline.py --ignore=test/test_overflow.py --ignore=test/test_profiler_async.py --ignore=mutants --disable-warnings"
+pythonpath = ["."]
+
+[tool.mutmut]
+source_paths = ["pyinstrument/"]
+pytest_add_cli_args_test_selection = ["test/"]

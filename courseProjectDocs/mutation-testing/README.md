@@ -16,13 +16,25 @@
         pip install mutmut
     ```
 
-3. Run mutmut
+3. Clear mutmut cache
 
+    ```
+        rm -rf .mutmut-cache mutants/
+    ```
+
+4. Run mutmut
+
+    Full run:
     ```
         mutmut run
     ```
 
-4. View mutmut Results
+    Specifically middleware.py component:
+    ```
+        mutmut run "pyinstrument.middleware*"
+    ```
+
+5. View mutmut results in more detail
 
     ```
         mutmut browse

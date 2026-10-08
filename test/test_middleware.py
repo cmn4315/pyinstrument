@@ -80,3 +80,17 @@ def test_process_response_renders_html(monkeypatch):
         response = init_middleware().process_response(request, object())
 
     assert response.content == b"html profile"
+
+
+def test_middleware_missing_callback(monkeypatch):
+    if hasattr(settings, "PYINSTRUMENT_SHOW_CALLBACK"):
+        monkeypatch.delattr(settings, "PYINSTRUMENT_SHOW_CALLBACK", raising=False)
+
+    class MockRequest:
+        def __init__(self):
+            self.GET = {}
+
+    mock_request = MockRequest()
+
+    # ensures that processing the request does not cause an error when no callback settings are provided (should default to None)
+    init_middleware().process_request(mock_request)
