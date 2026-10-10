@@ -22,6 +22,12 @@ Mutation Score: 74/176 (42.05%)
 
 - test_middleware_missing_callback(): added to test_middleware.py to ensure that when no settings are provided for PYINSTRUMENT_SHOW_CALLBACK, process_request() is still able to run without any errors, by using the default settings of "None".
 
+- test_start_sampling_called_correctly_on_subscribe(): Added to test_stack_sampler.py to ensure that mutations to
+arguments given to StackSampler._start_sampling() are caught and killed.
+
+- test_stack_sampler.test_create(): Added an assert to kill some additional mutants based on internal state of newly
+created StackSampler objects.
+
 
 # Updated Mutation Testing Score
 
@@ -55,3 +61,58 @@ Analysis:
     The updated test is able to catch this mutant, by explicitly verifying that profile_request() runs without any errors being thrown even when no settings attribute is provided for PYINSTRUMENT_SHOW_CALLBACK. In the original middleware component, the default value of None for settings allows process_request() to run normally. However, in the mutated version of middleware, without a default None setting, process_request() does throw an error, which causes this test to fail.
 
     Coincidentally, adding this test successfully caught 2 additional middleware mutants that were not explicitly targeted by the additional test, increasing the caught mutant total to 77/176 (43.75%) for middleware.py.
+
+
+## Stack Sampler Component
+
+### Initial Coverage:
+
+[264/4449] - 264 of the total 4449 mutants were mutants of the stack_sampler.py file
+
+[🎉 136] - 135 mutants were successfully killed by existing tests
+
+[🫥 0] - 0 mutants were considered skipped by mutmut (untested logic, etc.)
+
+[🙁 128] - 128 mutants were entirely uncaught by tests
+
+Mutation Score: 135/264 (51.51%)
+
+### Updated Coverage:
+
+[264/4449] - 264 of the total 4449 mutants were mutants of the stack_sampler.py file
+
+[🎉 141] - 141 mutants were successfully killed by added tests
+
+[🫥 0] - 0 mutants were considered skipped by mutmut (untested logic, etc.)
+
+[🙁 123] - 123 mutants were entirely uncaught by tests
+
+Mutation Score: 141/264 (53.40%)
+
+Analysis:
+    Like with middleware.py, this file also showed quite poor mutation scores. This is because the existing tests test
+larger-scale behaviors, and they often missed small mutations that simply changed string values or internal
+configurations that didn't affect the tested behavior. Two changes were made to this file; first, a new test was added
+explicitly targeting a specific mutant, then an extra assert was added to an existing test, test_create() to verify that internal
+configuration variables were set correctly, which was targeted at another genre of mutants.
+
+    To add to the mutation testing of stack_sampler, a test was added that verifies the arguments passed to _start_sampling() inside of the StackSampler's update() method. The mutant this was targeted to kill is shown below:
+
+    Original:
+    ```
+        self._start_sampling(
+            interval=min_subscribers_interval, use_timing_thread=use_timing_thread
+        )
+    ```
+
+    Mutated:
+    ```
+        self._start_sampling(
+            interval=min_subscribers_interval, use_timing_thread=None
+        )
+    ```
+
+    The updated test is able to catch this mutant by mocking the _start_sampling method and explicitly checking the
+arguments passed in. This mutant, along with other mutants that edited this line of the update() method, were therefore
+killed, allowing for the mutation coverage to be improved. In total, this added test killed 3 new mutants. In addition,
+the additional assert added to test_create killed several additional mutants, increasing total mutation coverage to 124/140 or 46.97%
