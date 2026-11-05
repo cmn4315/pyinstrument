@@ -169,7 +169,7 @@ class StackSampler:
         self._check_timing_overhead(interval=interval, timer_type=timer_type)
 
         self.current_sampling_interval = interval
-        if self.last_profile_time == 0.0:
+        if -0.00001 < self.last_profile_time < 0.00001:
             self.last_profile_time = self._timer()
 
         setstatprofile(
