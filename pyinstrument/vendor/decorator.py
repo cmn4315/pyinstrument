@@ -67,7 +67,7 @@ except AttributeError:
         return False
 
 
-DEF = re.compile(r'\s*def\s*([_\w][_\w\d]*)\s*\(')
+DEF = re.compile(r'^\s*def\s*([_\w][_\w\d]*)\s*\(')
 
 
 # basic functionality
