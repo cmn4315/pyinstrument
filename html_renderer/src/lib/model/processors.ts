@@ -329,7 +329,7 @@ export function remove_first_pyinstrument_frames_processor(frame: Frame | null, 
         f.proportionOfParent > 0.8 && f.filePath?.includes("<string>") && f.children.length > 0;
 
     const isRunpyFrame = (f: Frame) =>
-        f.proportionOfParent > 0.8 && (new RegExp(".*runpy.py").test(f.filePath ?? '') || f.filePath?.includes("<frozen runpy>")) && f.children.length > 0;
+        f.proportionOfParent > 0.8 && ((f.filePath ?? '').includes('runpy.py') || (f.filePath ?? '').includes('<frozen runpy>')) && f.children.length > 0;
 
     let result = frame;
 
