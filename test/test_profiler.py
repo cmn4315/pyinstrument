@@ -2,9 +2,12 @@ import asyncio
 import dataclasses
 import inspect
 import json
+import os
 import time
+import urllib.parse
 from functools import partial
 from typing import Generator, Optional
+from unittest.mock import patch
 
 import pytest
 
@@ -415,3 +418,20 @@ def test_profiler_raises_on_double_subscribe():
         profiler.start()
     assert "Profiler is already running" in str(e.value)
     profiler.stop()
+
+
+# Integration testing
+def test_profiler_open_in_browser():
+    with fake_time():
+        with Profiler() as profiler:
+            long_function_a()
+            long_function_b()
+
+    with patch("webbrowser.open") as mock_open:
+        output_file = profiler.open_in_browser()
+
+        assert output_file.endswith(".html")
+        mock_open.assert_called_once_with(
+            urllib.parse.urlunparse(("file", "", output_file, "", "", ""))
+        )
+        os.remove(output_file)
