@@ -445,3 +445,19 @@ def test_profiler_open_in_browser():
         finally:
             if os.path.exists(output_file):
                 os.remove(output_file)
+
+
+def test_write_html():
+    with fake_time():
+        with Profiler() as profiler:
+            long_function_a()
+            long_function_b()
+    out = profiler.output_html()
+    # output is a single page html, with some complicated script tags. Just check that those are there.
+    assert out.startswith("<!DOCTYPE html>")
+    assert "<html>" in out
+    assert out.count("<script>") == 2
+
+    # also check that the function identifiers appear.
+    assert "long_function_a" in out
+    assert "long_function_b" in out
