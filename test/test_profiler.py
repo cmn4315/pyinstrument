@@ -429,9 +429,19 @@ def test_profiler_open_in_browser():
 
     with patch("webbrowser.open") as mock_open:
         output_file = profiler.open_in_browser()
+        try:
+            assert output_file.endswith(".html")
+            assert os.path.isfile(output_file)
 
-        assert output_file.endswith(".html")
-        mock_open.assert_called_once_with(
-            urllib.parse.urlunparse(("file", "", output_file, "", "", ""))
-        )
-        os.remove(output_file)
+            with open(output_file, encoding="utf-8") as html_file:
+                html = html_file.read()
+
+            assert "test_profiler_open_in_browser" in html
+            assert "long_function_a" in html
+            assert "long_function_b" in html
+            mock_open.assert_called_once_with(
+                urllib.parse.urlunparse(("file", "", output_file, "", "", ""))
+            )
+        finally:
+            if os.path.exists(output_file):
+                os.remove(output_file)
