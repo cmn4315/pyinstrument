@@ -17,7 +17,7 @@ jobs:
     - name: Install Python deps
       run: |
         pip install -r requirements-dev.txt
-    - uses: j178/prek-action@v2.0.6
+    - uses: j178/prek-action@5337cb91e0fa35a7ff31b9ca345126d8bbbcdf16
 
   test:
     runs-on: ${{ matrix.os }}
