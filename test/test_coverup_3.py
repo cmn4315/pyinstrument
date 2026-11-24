@@ -3,6 +3,7 @@
 # gained: {"lines": [131, 132, 133, 134, 135, 137], "branches": [[131, 132], [131, 137]]}
 
 import pytest
+import math
 
 from pyinstrument.frame import Frame
 
@@ -32,7 +33,7 @@ def test_proportion_of_parent_with_parent(frame_with_parent):
 def test_proportion_of_parent_with_parent_zero_division(frame_with_parent):
     frame_with_parent.parent.time = 0
     result = frame_with_parent.proportion_of_parent
-    assert result != result
+    assert math.isnan(result)
 
 
 def test_proportion_of_parent_without_parent(frame_without_parent):
