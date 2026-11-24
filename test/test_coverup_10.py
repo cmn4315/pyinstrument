@@ -10,3 +10,5 @@ from pyinstrument.renderers.base import FrameRenderer, ProcessorList
 def test_default_processors_raises_notimplementederror():
     with pytest.raises(NotImplementedError):
         FrameRenderer().default_processors()
+
+
